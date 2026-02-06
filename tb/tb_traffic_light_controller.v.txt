@@ -1,0 +1,51 @@
+module tb_traffic_light_controller;
+
+    reg clk;
+    reg reset;
+    reg ped_button;
+
+    wire [2:0] vehicle_light;
+    wire ped_light;
+
+    // Instantiate the DUT
+    traffic_light_controller dut (
+        .clk(clk),
+        .reset(reset),
+        .ped_button(ped_button),
+        .vehicle_light(vehicle_light),
+        .ped_light(ped_light)
+    );
+
+    // Clock Generator: 10 time units period
+    initial clk = 0;
+    always #5 clk = ~clk;
+
+    // VCD Dump + Test Sequence
+    initial begin
+        // Create VCD waveform file
+        $dumpfile("traffic_light.vcd");
+        // Dump all signals in testbench hierarchy
+        $dumpvars(0, tb_traffic_light_controller);
+        // Also dump DUT internal state/timer
+        $dumpvars(1, dut);
+
+        // Reset
+        reset = 1;
+        ped_button = 0;
+        #15 reset = 0;
+
+        // Let traffic run (GREEN→YELLOW→RED)
+        #80;
+
+        // Pedestrian presses button
+        ped_button = 1;
+        #10 ped_button = 0;
+
+        // Let traffic go through the pedestrian sequence
+        #120;
+
+        // End simulation
+        $finish;
+    end
+
+endmodule
